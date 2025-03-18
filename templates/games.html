@@ -1,90 +1,92 @@
-List:
+<ul id="games">
 {% for game in games %}
-<li>
-  {{game.title}},
-  {{game.start_date}},
-  {{game.end_date}},
-  {{game.completed}},
-  {{game.steam_store_url}},
-  {{game.gog_store_url}},
-  {{game.image_url}},
-  {{game.comments}},
-  {{game.tags}},
-  {{game.platforms}},
-  {{game.genres}},
-  {{game.developer}},
-  {{game.rating}}
-</li>
+  <li>
+    <form method="POST" hx-post="/games/{{game.id}}" hx-target="#games" hx-swap="innerHTML">
+      <input name="title" value="{{game.title}}" placeholder="Title">
+      <input name="start_date" value="{{game.start_date}}" placeholder="Start Date">
+      <input name="end_date" value="{{game.end_date}}" placeholder="End Date">
+      <input name="steam_store_url" value="{{game.steam_store_url}}" placeholder="Steam URL">
+      <input name="gog_store_url" value="{{game.gog_store_url}}" placeholder="GOG URL">
+      <input name="image_url" value="{{game.image_url}}" placeholder="Image URL">
+
+      <textarea name="comments" placeholder="Comments">{{game.comments|join(', ')}}</textarea>
+      <input name="tags" value="{{game.tags|join(',')}}" placeholder="Tags (comma separated)">
+
+      <fieldset>
+        <legend>Platforms</legend>
+        {% for platform in Platforms %}
+          <label>
+            <input type="checkbox" name="platforms" value="{{platform.value}}"
+              {% if platform in game.platforms %}checked{% endif %}
+            > {{platform.value}}
+          </label>
+        {% endfor %}
+      </fieldset>
+
+      <fieldset>
+        <legend>Genres</legend>
+        {% for genre in Genres %}
+          <label>
+            <input type="checkbox" name="genres" value="{{genre.value}}"
+              {% if genre in game.genres %}checked{% endif %}
+            > {{genre.value}}
+          </label>
+        {% endfor %}
+      </fieldset>
+
+      <input name="developer" value="{{game.developer}}" placeholder="Developer">
+      <input name="rating" type="number" min="0" max="10" value="{{game.rating}}" placeholder="Rating">
+
+      <label>
+        <input type="checkbox" name="completed"
+          {% if game.completed %}checked{% endif %}
+          hx-post="/games/{{game.id}}/toggle" hx-target="#games" hx-swap="innerHTML">
+        Completed
+      </label>
+
+      <button type="submit">Save</button>
+    </form>
+
+    <button hx-post="/games/{{game.id}}/delete" hx-target="#games" hx-swap="innerHTML">❌ Delete</button>
+  </li>
 {% endfor %}
-Edit:
-{% for game in games %}
-<li>
-<form method="POST" action="/games/{{game.id}}">
-  <input name="title" value="{{game.title}}" >
-  <input name="start_date" value="{{game.start_date}}" >
-  <input name="end_date" value="{{game.end_date}}" >
-  <input name="steam_store_url" value="{{game.steam_store_url}}" >
-  <input name="gog_store_url" value="{{game.gog_store_url}}" >
-  <input name="image_url" value="{{game.image_url}}" >
-  <input name="comments" value="{{game.comments|join(',')}}" >
-  <input name="tags" value="{{game.tags|join(',')}}" >
+</ul>
 
-  {% for platform in Platforms %}
-    <label>
-      <input type="checkbox" name="platforms" value="{{platform.value}}"
-        {% if platform.value in game.platforms %}checked{% endif %}
-      > {{platform.value}}
-    </label>
-  {% endfor %}
+<h3>Create New Game</h3>
+<form method="POST" hx-post="/games" hx-target="#games" hx-swap="innerHTML">
+  <input name="title" placeholder="Title">
+  <input name="start_date" placeholder="Start Date">
+  <input name="end_date" placeholder="End Date">
+  <input name="steam_store_url" placeholder="Steam URL">
+  <input name="gog_store_url" placeholder="GOG URL">
+  <input name="image_url" placeholder="Image URL">
+  
+  <textarea name="comments" placeholder="Comments"></textarea>
+  <input name="tags" placeholder="Tags (comma separated)">
 
-  {% for genre in Genres %}
-    <label>
-      <input type="checkbox" name="genres" value="{{genre.value}}"
-        {% if genre.value in game.genres %}checked{% endif %}
-      > {{genre.value}}
-    </label>
-  {% endfor %}
+  <fieldset>
+    <legend>Platforms</legend>
+    {% for platform in Platforms %}
+      <label>
+        <input type="checkbox" name="platforms" value="{{platform.value}}">
+        {{platform.value}}
+      </label>
+    {% endfor %}
+  </fieldset>
 
-  <input name="developer" value="{{game.developer}}" >
-  <input name="rating" type="number" min="0" max="10" value="{{game.rating}}" >
+  <fieldset>
+    <legend>Genres</legend>
+    {% for genre in Genres %}
+      <label>
+        <input type="checkbox" name="genres" value="{{genre.value}}">
+        {{genre.value}}
+      </label>
+    {% endfor %}
+  </fieldset>
 
-  <button type="submit" hx-post="/games/{{game.id}}" hx-target="#games" hx-swap="innerHTML"> Submit </button>
+  <input name="developer" placeholder="Developer">
+  <input name="rating" type="number" min="0" max="10" placeholder="Rating">
+
+  <button type="submit">Create</button>
 </form>
-  <input type="checkbox" {% if game.completed %}checked{% endif %} hx-post="/games/{{game.id}}/toggle" hx-target="#games" hx-swap="innerHTML">
-  <input type="button" value="❌" hx-post="/games/{{game.id}}/delete" hx-target="#games" hx-swap="innerHTML">
-</li>
-{% endfor %}
 
-Create:
-<li>
-<form method="POST" action="/games">
-  <input name="title"> 
-  <input name="start_date">
-  <input name="end_date">
-  <input name="steam_store_url">
-  <input name="gog_store_url">
-  <input name="image_url">
-  <input name="comments">
-  <input name="tags">
-
-  {% for platform in Platforms %}
-    <label>
-      <input type="checkbox" name="platforms" value="{{platform.value}}"
-        {% if platform.value in game.platforms %}checked{% endif %}
-      > {{platform.value}}
-    </label>
-  {% endfor %}
-
-  {% for genre in Genres %}
-    <label>
-      <input type="checkbox" name="genres" value="{{genre.value}}"
-        {% if genre.value in game.genres %}checked{% endif %}
-      > {{genre.value}}
-    </label>
-  {% endfor %}
-
-  <input name="developer">
-  <input name="rating" type="number" min="0" max="10">
-  <button type="submit" hx-post="/games" hx-target="#games" hx-swap="innerHTML"> Submit </button>
-</form>
-</li>
