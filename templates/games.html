@@ -12,35 +12,37 @@
       <textarea name="comments" placeholder="Comments">{{game.comments|join(', ')}}</textarea>
       <input name="tags" value="{{game.tags|join(',')}}" placeholder="Tags (comma separated)">
 
-      <fieldset>
-        <legend>Platforms</legend>
-        {% for platform in Platforms %}
-          <label>
-            <input type="checkbox" name="platforms" value="{{platform.value}}"
-              {% if platform in game.platforms %}checked{% endif %}
-            > {{platform.value}}
-          </label>
-        {% endfor %}
-      </fieldset>
 
-      <fieldset>
-        <legend>Genres</legend>
-        {% for genre in Genres %}
-          <label>
-            <input type="checkbox" name="genres" value="{{genre.value}}"
-              {% if genre in game.genres %}checked{% endif %}
-            > {{genre.value}}
-          </label>
-        {% endfor %}
-      </fieldset>
+<fieldset>
+  <legend>Platforms</legend>
+  {% for platform in Platforms %}
+    <label>
+      <input type="checkbox" name="platforms" value="{{platform.value}}"
+        {% if platform.value in game.platforms|map(attribute='value')|list %}checked{% endif %}
+      > {{platform.value}}
+    </label>
+  {% endfor %}
+
+</fieldset>
+
+
+<fieldset>
+  <legend>Genres</legend>
+  {% for genre in Genres %}
+    <label>
+      <input type="checkbox" name="genres" value="{{genre.value}}"
+        {% if genre.value in game.genres|map(attribute='value')|list %}checked{% endif %}
+      > {{genre.value}}
+    </label>
+  {% endfor %}
+</fieldset>
 
       <input name="developer" value="{{game.developer}}" placeholder="Developer">
       <input name="rating" type="number" min="0" max="10" value="{{game.rating}}" placeholder="Rating">
 
       <label>
         <input type="checkbox" name="completed"
-          {% if game.completed %}checked{% endif %}
-          hx-post="/games/{{game.id}}/toggle" hx-target="#games" hx-swap="innerHTML">
+          {% if game.completed %}checked{% endif %} >
         Completed
       </label>
 
@@ -64,29 +66,35 @@
   <textarea name="comments" placeholder="Comments"></textarea>
   <input name="tags" placeholder="Tags (comma separated)">
 
-  <fieldset>
-    <legend>Platforms</legend>
-    {% for platform in Platforms %}
-      <label>
-        <input type="checkbox" name="platforms" value="{{platform.value}}">
-        {{platform.value}}
-      </label>
-    {% endfor %}
-  </fieldset>
+<fieldset>
+  <legend>Platforms</legend>
+  {% for platform in Platforms %}
+    <label>
+      <input type="checkbox" name="platforms" value="{{platform.value}}"
+      > {{platform.value}}
+    </label>
+  {% endfor %}
 
-  <fieldset>
-    <legend>Genres</legend>
-    {% for genre in Genres %}
-      <label>
-        <input type="checkbox" name="genres" value="{{genre.value}}">
-        {{genre.value}}
-      </label>
-    {% endfor %}
-  </fieldset>
+</fieldset>
+
+
+<fieldset>
+  <legend>Genres</legend>
+  {% for genre in Genres %}
+    <label>
+      <input type="checkbox" name="genres" value="{{genre.value}}"
+      > {{genre.value}}
+    </label>
+  {% endfor %}
+</fieldset>
+
 
   <input name="developer" placeholder="Developer">
   <input name="rating" type="number" min="0" max="10" placeholder="Rating">
+  <label>
+    <input type="checkbox" name="completed"
+    Completed
+  </label>
 
   <button type="submit">Create</button>
 </form>
-

@@ -53,6 +53,7 @@ async def create_game(request: Request,
                       rating: Annotated[int, Form()] = 0):
 
     new_game = Game(
+        id=str(uuid.uuid4()),  # Generate a unique ID
         title=title,
         start_date=start_date,
         end_date=end_date,
@@ -71,8 +72,13 @@ async def create_game(request: Request,
     logger.info(f"New game created: {new_game}")
 
     games.append(new_game)
-
-    return templates.TemplateResponse("games.html", context={"request": request, "games": games})
+    context = {
+        "request": request,
+        "games": games,
+        "Platforms": Platforms,
+        "Genres": Genres
+    }
+    return templates.TemplateResponse("games.html", context=context)
 
 @app.post("/games/{game_id}", response_class=HTMLResponse)
 async def update_game(request: Request, game_id: str,
@@ -109,20 +115,25 @@ async def update_game(request: Request, game_id: str,
                 rating=rating
             )
             break
+    context = {
+        "request": request,
+        "games": games,
+        "Platforms": Platforms,
+        "Genres": Genres
+    }
 
-    return templates.TemplateResponse("games.html", context={"request": request, "games": games})
+    return templates.TemplateResponse("games.html", context=context)
 
-@app.post("/games/{game_id}/toggle", response_class=HTMLResponse)
-async def toggle_complete_game(request: Request, game_id: str):
-    for game in games:
-        if game.id == game_id:
-            game.completed = not game.completed
-            break
-    return templates.TemplateResponse("games.html", context={"request": request, "games": games})
 
 @app.post("/games/{game_id}/delete", response_class=HTMLResponse)
 async def delete_game(request: Request, game_id: str):
     global games
     games = [game for game in games if game.id != game_id]
-    return templates.TemplateResponse("games.html", context={"request": request, "games": games})
+    context = {
+        "request": request,
+        "games": games,
+        "Platforms": Platforms,
+        "Genres": Genres
+    }
+    return templates.TemplateResponse("games.html", context=context)
 

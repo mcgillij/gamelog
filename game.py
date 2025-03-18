@@ -46,7 +46,7 @@ class Platforms(Enum):
 
 class Game(BaseModel):
     """ My Game class """
-    id: str = str(uuid4())
+    id: str
     title: str
     start_date: str
     end_date: str
