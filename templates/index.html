@@ -1,0 +1,23 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameLog</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+<body>
+    <h1>GameLog</h1>
+    <ul id="games" hx-get="/games" hx-swap="innerHTML" hx-trigger="load"></ul>
+    <h2>Edit a game</h2>
+
+    <h2>Create a game</h2>
+<form hx-post="/games" hx-target="#games" hx-swap="innerHTML" hx-on:htmx:after-request="this.reset()">
+  <input type="text" name="title" placeholder="title">
+  <button>Create</button>
+</form>
+
+</body>
+</html>
