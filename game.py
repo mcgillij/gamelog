@@ -28,12 +28,8 @@ class GenreModel(SQLModel, table=True):
 class GamePlatformLink(SQLModel, table=True):
     __tablename__ = "game_platforms"
 
-    game_id: int = Field(
-        default=None, foreign_key="games.id", primary_key=True
-    )
-    platform_id: int = Field(
-        default=None, foreign_key="platforms.id", primary_key=True
-    )
+    game_id: int = Field(default=None, foreign_key="games.id", primary_key=True)
+    platform_id: int = Field(default=None, foreign_key="platforms.id", primary_key=True)
 
     # Define relationships
     game: "Game" = Relationship(back_populates="platform_links")
@@ -43,12 +39,8 @@ class GamePlatformLink(SQLModel, table=True):
 class GameGenreLink(SQLModel, table=True):
     __tablename__ = "game_genres"
 
-    game_id: int = Field(
-        default=None, foreign_key="games.id", primary_key=True
-    )
-    genre_id: int = Field(
-        default=None, foreign_key="genres.id", primary_key=True
-    )
+    game_id: int = Field(default=None, foreign_key="games.id", primary_key=True)
+    genre_id: int = Field(default=None, foreign_key="genres.id", primary_key=True)
 
     # Define relationships
     game: "Game" = Relationship(back_populates="genre_links")

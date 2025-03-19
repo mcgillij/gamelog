@@ -20,7 +20,7 @@ from game import (
 )
 
 engine = create_engine("sqlite:///games.db", echo="debug")
-#engine = create_engine("sqlite:///games.db", echo=True)
+# engine = create_engine("sqlite:///games.db", echo=True)
 
 # Create all tables in the database
 SQLModel.metadata.create_all(engine)
@@ -146,7 +146,7 @@ async def create_game(
     db.refresh(new_game)
 
     # Link existing platforms (don't create new ones)
-    logger.info(f"Platforms: {platforms}") 
+    logger.info(f"Platforms: {platforms}")
     if platforms:
         existing_platforms = db.exec(
             select(PlatformModel).where(PlatformModel.id.in_(platforms))
