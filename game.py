@@ -8,7 +8,7 @@ from util import logger
 class PlatformModel(SQLModel, table=True):
     __tablename__ = "platforms"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     name: str = Field(unique=True)
 
     # Relationship to game_platforms association table
@@ -18,7 +18,7 @@ class PlatformModel(SQLModel, table=True):
 class GenreModel(SQLModel, table=True):
     __tablename__ = "genres"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     name: str = Field(unique=True)
 
     # Relationship to game_genres association table
@@ -28,10 +28,10 @@ class GenreModel(SQLModel, table=True):
 class GamePlatformLink(SQLModel, table=True):
     __tablename__ = "game_platforms"
 
-    game_id: Optional[int] = Field(
+    game_id: int = Field(
         default=None, foreign_key="games.id", primary_key=True
     )
-    platform_id: Optional[int] = Field(
+    platform_id: int = Field(
         default=None, foreign_key="platforms.id", primary_key=True
     )
 
@@ -43,10 +43,10 @@ class GamePlatformLink(SQLModel, table=True):
 class GameGenreLink(SQLModel, table=True):
     __tablename__ = "game_genres"
 
-    game_id: Optional[int] = Field(
+    game_id: int = Field(
         default=None, foreign_key="games.id", primary_key=True
     )
-    genre_id: Optional[int] = Field(
+    genre_id: int = Field(
         default=None, foreign_key="genres.id", primary_key=True
     )
 

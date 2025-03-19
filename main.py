@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated, Union, List
 
-from sqlmodel import Session, create_engine, select, SQLModel
+from sqlmodel import Session, create_engine, select, delete, SQLModel
 from contextlib import contextmanager
 from util import logger
 
@@ -19,7 +19,8 @@ from game import (
     initialize_lookup_tables,
 )
 
-engine = create_engine("sqlite:///games.db", echo=True)
+engine = create_engine("sqlite:///games.db", echo="debug")
+#engine = create_engine("sqlite:///games.db", echo=True)
 
 # Create all tables in the database
 SQLModel.metadata.create_all(engine)
@@ -144,43 +145,25 @@ async def create_game(
     db.commit()
     db.refresh(new_game)
 
-    # Add platforms
+    # Link existing platforms (don't create new ones)
+    logger.info(f"Platforms: {platforms}") 
     if platforms:
-        for platform_name in platforms:
-            # Get or create platform
-            platform = db.exec(
-                select(PlatformModel).where(PlatformModel.name == platform_name)
-            ).first()
+        existing_platforms = db.exec(
+            select(PlatformModel).where(PlatformModel.id.in_(platforms))
+        ).all()
+        for platform in existing_platforms:
+            logger.info(f"Adding platform: {platform}")
+            db.add(GamePlatformLink(game_id=new_game.id, platform_id=platform.id))
 
-            if not platform:
-                platform = PlatformModel(name=platform_name)
-                db.add(platform)
-                db.commit()
-                db.refresh(platform)
-
-            # Create link
-            platform_link = GamePlatformLink(
-                game_id=new_game.id, platform_id=platform.id
-            )
-            db.add(platform_link)
-
-    # Add genres
+    # Link existing genres (don't create new ones)
+    logger.info(f"Genres: {genres}")
     if genres:
-        for genre_name in genres:
-            # Get or create genre
-            genre = db.exec(
-                select(GenreModel).where(GenreModel.name == genre_name)
-            ).first()
-
-            if not genre:
-                genre = GenreModel(name=genre_name)
-                db.add(genre)
-                db.commit()
-                db.refresh(genre)
-
-            # Create link
-            genre_link = GameGenreLink(game_id=new_game.id, genre_id=genre.id)
-            db.add(genre_link)
+        existing_genres = db.exec(
+            select(GenreModel).where(GenreModel.id.in_(genres))
+        ).all()
+        for genre in existing_genres:
+            logger.info(f"Adding genre: {genre}")
+            db.add(GameGenreLink(game_id=new_game.id, genre_id=genre.id))
 
     db.commit()
 
@@ -228,48 +211,27 @@ async def update_game(
     game.rating = rating
 
     # Delete existing platform links
-    db.exec(
-        select(GamePlatformLink).where(GamePlatformLink.game_id == game_id)
-    ).delete()
 
-    # Add platforms
-    if platforms:
-        for platform_name in platforms:
-            # Get or create platform
-            platform = db.exec(
-                select(PlatformModel).where(PlatformModel.name == platform_name)
-            ).first()
-
-            if not platform:
-                platform = PlatformModel(name=platform_name)
-                db.add(platform)
-                db.commit()
-                db.refresh(platform)
-
-            # Create link
-            platform_link = GamePlatformLink(game_id=game.id, platform_id=platform.id)
-            db.add(platform_link)
+    db.exec(delete(GamePlatformLink).where(GamePlatformLink.game_id == game_id))
 
     # Delete existing genre links
-    db.exec(select(GameGenreLink).where(GameGenreLink.game_id == game_id)).delete()
 
-    # Add genres
+    db.exec(delete(GameGenreLink).where(GameGenreLink.game_id == game_id))
+    # Link existing platforms (don't create new ones)
+    if platforms:
+        existing_platforms = db.exec(
+            select(PlatformModel).where(PlatformModel.id.in_(platforms))
+        ).all()
+        for platform in existing_platforms:
+            db.add(GamePlatformLink(game_id=game.id, platform_id=platform.id))
+
+    # Link existing genres (don't create new ones)
     if genres:
-        for genre_name in genres:
-            # Get or create genre
-            genre = db.exec(
-                select(GenreModel).where(GenreModel.name == genre_name)
-            ).first()
-
-            if not genre:
-                genre = GenreModel(name=genre_name)
-                db.add(genre)
-                db.commit()
-                db.refresh(genre)
-
-            # Create link
-            genre_link = GameGenreLink(game_id=game.id, genre_id=genre.id)
-            db.add(genre_link)
+        existing_genres = db.exec(
+            select(GenreModel).where(GenreModel.id.in_(genres))
+        ).all()
+        for genre in existing_genres:
+            db.add(GameGenreLink(game_id=game.id, genre_id=genre.id))
 
     db.commit()
 
@@ -284,13 +246,10 @@ async def delete_game(request: Request, game_id: int, db: Session = Depends(get_
     if not game:
         return JSONResponse(status_code=404, content={"message": "Game not found"})
 
-    # Delete related platform links
-    db.exec(
-        select(GamePlatformLink).where(GamePlatformLink.game_id == game_id)
-    ).delete()
-
-    # Delete related genre links
-    db.exec(select(GameGenreLink).where(GameGenreLink.game_id == game_id)).delete()
+    # Delete existing platform links
+    db.exec(delete(GamePlatformLink).where(GamePlatformLink.game_id == game_id))
+    # Delete existing genre links
+    db.exec(delete(GameGenreLink).where(GameGenreLink.game_id == game_id))
 
     # Delete game
     db.delete(game)
@@ -298,15 +257,3 @@ async def delete_game(request: Request, game_id: int, db: Session = Depends(get_
 
     # Redirect to games list
     return await games_list(request, hx_request="true", db=db)
-
-
-# Helper endpoint to get available platforms and genres (useful for forms)
-@app.get("/metadata", response_class=JSONResponse)
-async def get_metadata(db: Session = Depends(get_db)):
-    platforms = db.exec(select(PlatformModel)).all()
-    genres = db.exec(select(GenreModel)).all()
-
-    return {
-        "platforms": [{"id": p.id, "name": p.name} for p in platforms],
-        "genres": [{"id": g.id, "name": g.name} for g in genres],
-    }
