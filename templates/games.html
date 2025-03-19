@@ -16,9 +16,9 @@
             <input name="image_url" value="{{game.image_url}}" placeholder="Image URL">
 
             <label for="comments">Comments</label>
-            <textarea name="comments" placeholder="Comments">{{game.comments|join(', ')}}</textarea>
+            <textarea name="comments" placeholder="Comments">{{game.comments}}</textarea>
             <label for="tags">Tags</label>
-            <input name="tags" value="{{game.tags|join(',')}}" placeholder="Tags (comma separated)">
+            <input name="tags" value="{{game.tags}}" placeholder="Tags (comma separated)">
 
             <label for="platforms">Platforms</label>
             <select id="platforms" name="platforms" multiple>
