@@ -1,9 +1,11 @@
-""" Main Game class """
+"""Main Game class"""
+
 from uuid import uuid4
 from pydantic import BaseModel
 from typing import List
 
 from enum import Enum
+
 
 class Genres(Enum):
     ACTION = "Action"
@@ -34,6 +36,7 @@ class Genres(Enum):
     MODERN = "Modern"
     POST_APOCALYPTIC = "Post-Apocalyptic"
 
+
 class Platforms(Enum):
     PC = "PC"
     PS4 = "PS4"
@@ -45,7 +48,8 @@ class Platforms(Enum):
 
 
 class Game(BaseModel):
-    """ My Game class """
+    """My Game class"""
+
     id: str
     title: str
     start_date: str
