@@ -1,56 +1,64 @@
 """Main Game class"""
 
-from uuid import uuid4
-from pydantic import BaseModel
-from typing import List
-
-from enum import Enum
+from typing import List, Optional
+from sqlmodel import Field, SQLModel, Relationship, Session, select
+from util import logger
 
 
-class Genres(Enum):
-    ACTION = "Action"
-    ADVENTURE = "Adventure"
-    RPG = "RPG"
-    STRATEGY = "Strategy"
-    SIMULATION = "Simulation"
-    SPORTS = "Sports"
-    PUZZLE = "Puzzle"
-    RACING = "Racing"
-    FIGHTING = "Fighting"
-    HORROR = "Horror"
-    SURVIVAL = "Survival"
-    SHOOTER = "Shooter"
-    PLATFORMER = "Platformer"
-    MMO = "MMO"
-    MOBA = "MOBA"
-    RTS = "RTS"
-    TBS = "TBS"
-    TPS = "TPS"
-    FPS = "FPS"
-    SANDBOX = "Sandbox"
-    OPEN_WORLD = "Open World"
-    FANTASY = "Fantasy"
-    SCI_FI = "Sci-Fi"
-    HISTORICAL = "Historical"
-    MEDIEVAL = "Medieval"
-    MODERN = "Modern"
-    POST_APOCALYPTIC = "Post-Apocalyptic"
+class PlatformModel(SQLModel, table=True):
+    __tablename__ = "platforms"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True)
+
+    # Relationship to game_platforms association table
+    games: List["GamePlatformLink"] = Relationship(back_populates="platform")
 
 
-class Platforms(Enum):
-    PC = "PC"
-    PS4 = "PS4"
-    PS5 = "PS5"
-    XBOX_ONE = "Xbox One"
-    XBOX_SERIES_X = "Xbox Series X"
-    SWITCH = "Switch"
-    MOBILE = "Mobile"
+class GenreModel(SQLModel, table=True):
+    __tablename__ = "genres"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True)
+
+    # Relationship to game_genres association table
+    games: List["GameGenreLink"] = Relationship(back_populates="genre")
 
 
-class Game(BaseModel):
+class GamePlatformLink(SQLModel, table=True):
+    __tablename__ = "game_platforms"
+
+    game_id: Optional[int] = Field(
+        default=None, foreign_key="games.id", primary_key=True
+    )
+    platform_id: Optional[int] = Field(
+        default=None, foreign_key="platforms.id", primary_key=True
+    )
+
+    # Define relationships
+    game: "Game" = Relationship(back_populates="platform_links")
+    platform: PlatformModel = Relationship(back_populates="games")
+
+
+class GameGenreLink(SQLModel, table=True):
+    __tablename__ = "game_genres"
+
+    game_id: Optional[int] = Field(
+        default=None, foreign_key="games.id", primary_key=True
+    )
+    genre_id: Optional[int] = Field(
+        default=None, foreign_key="genres.id", primary_key=True
+    )
+
+    # Define relationships
+    game: "Game" = Relationship(back_populates="genre_links")
+    genre: GenreModel = Relationship(back_populates="games")
+
+
+class Game(SQLModel, table=True):
+    __tablename__ = "games"
     """My Game class"""
-
-    id: str
+    id: Optional[int] = Field(default=None, primary_key=True)
     title: str
     start_date: str
     end_date: str
@@ -58,9 +66,78 @@ class Game(BaseModel):
     steam_store_url: str
     gog_store_url: str
     image_url: str
-    comments: List[str]
-    tags: List[str]
-    platforms: List[Platforms]
-    genres: List[Genres]
+    comments: str
+    tags: str
+    platform_links: List[GamePlatformLink] = Relationship(back_populates="game")
+    genre_links: List[GameGenreLink] = Relationship(back_populates="game")
     developer: str
     rating: int
+
+
+def initialize_lookup_tables(engine):
+    with Session(engine) as session:
+        platforms = [
+            "PC",
+            "PS4",
+            "PS5",
+            "Xbox One",
+            "Xbox Series X",
+            "Switch",
+            "Mobile",
+        ]
+
+        genres = [
+            "Action",
+            "Adventure",
+            "RPG",
+            "Strategy",
+            "Simulation",
+            "Sports",
+            "Puzzle",
+            "Racing",
+            "Fighting",
+            "Horror",
+            "Survival",
+            "Shooter",
+            "Platformer",
+            "MMO",
+            "MOBA",
+            "RTS",
+            "TBS",
+            "TPS",
+            "FPS",
+            "Sandbox",
+            "Open World",
+            "Fantasy",
+            "Sci-Fi",
+            "Historical",
+            "Medieval",
+            "Modern",
+            "Post-Apocalyptic",
+        ]
+
+        # Add platforms if they don't exist
+        for platform_name in platforms:
+            platform = session.exec(
+                select(PlatformModel).where(PlatformModel.name == platform_name)
+            ).first()
+
+            if not platform:
+                logger.info(f"Creating platform: {platform_name}")
+                platform = PlatformModel(name=platform_name)
+                session.add(platform)
+
+        # Add genres if they don't exist
+        for genre_name in genres:
+            genre = session.exec(
+                select(GenreModel).where(GenreModel.name == genre_name)
+            ).first()
+
+            if not genre:
+                logger.info(f"Creating genre: {genre_name}")
+                genre = GenreModel(name=genre_name)
+                session.add(genre)
+
+        # Commit all changes
+        session.commit()
+        logger.info("Lookup tables initialized")
