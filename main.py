@@ -168,6 +168,7 @@ async def create_game(
     # Redirect to games list
     return await games_list(request, hx_request="true", db=db)
 
+
 @app.get("/games/{game_id}/view", response_class=HTMLResponse)
 async def view_game(request: Request, game_id: int, db: Session = Depends(get_db)):
     # Find game
@@ -184,9 +185,7 @@ async def view_game(request: Request, game_id: int, db: Session = Depends(get_db
 
     # Get genres
     genres = db.exec(
-        select(GenreModel)
-        .join(GameGenreLink)
-        .where(GameGenreLink.game_id == game.id)
+        select(GenreModel).join(GameGenreLink).where(GameGenreLink.game_id == game.id)
     ).all()
 
     # Prepare game data for the form
@@ -216,6 +215,7 @@ async def view_game(request: Request, game_id: int, db: Session = Depends(get_db
 
     return templates.TemplateResponse("view_game.html", context=context)
 
+
 @app.get("/games/{game_id}/edit", response_class=HTMLResponse)
 async def edit_game(request: Request, game_id: int, db: Session = Depends(get_db)):
     # Find game
@@ -232,9 +232,7 @@ async def edit_game(request: Request, game_id: int, db: Session = Depends(get_db
 
     # Get genres
     genres = db.exec(
-        select(GenreModel)
-        .join(GameGenreLink)
-        .where(GameGenreLink.game_id == game.id)
+        select(GenreModel).join(GameGenreLink).where(GameGenreLink.game_id == game.id)
     ).all()
 
     # Prepare game data for the form
@@ -263,6 +261,7 @@ async def edit_game(request: Request, game_id: int, db: Session = Depends(get_db
     }
 
     return templates.TemplateResponse("edit_game.html", context=context)
+
 
 @app.post("/games/{game_id}", response_class=HTMLResponse)
 async def update_game(
