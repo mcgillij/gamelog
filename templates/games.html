@@ -1,24 +1,37 @@
-<ul id="games">
+<ul id="games" style="list-style: none; padding: 0; display: grid; gap: 10px;">
     {% for game in games %}
-    <li id="game-{{ game.id }}">
+    <li id="game-{{ game.id }}" 
+        style="background: #333; padding: 10px; border-radius: 8px; color: white; display: flex; align-items: center; justify-content: space-between;">
+
         <div hx-get="/games/{{ game.id }}/edit" 
              hx-target="#game-{{ game.id }}" 
              hx-swap="outerHTML" 
-             style="cursor: pointer;">
-            <strong>{{ game.title }}</strong> ({{ game.start_date }} - {{ game.end_date }}) 
-            <span>Rating: {{ game.rating }}</span>
+             style="cursor: pointer; flex-grow: 1;">
+
+            <strong style="font-size: 1.1em;">{{ game.title }}</strong> 
+            <span style="font-size: 0.9em; color: #bbb;">({{ game.start_date }} - {{ game.end_date }})</span>
             <br>
-            <small>Platforms: {{ game.platforms | join(', ') }}</small>
-            <button hx-get="/games/{{ game.id }}/edit"
-                    hx-target="#game-{{ game.id }}"
-                    hx-swap="outerHTML">
-                    ✏️
-            </button>
+            <span style="color: {{ 'gold' if game.rating >= 8 else 'lightgray' }};">⭐ {{ game.rating }}</span>
+            <span style="margin-left: 10px;">
+                {% if game.completed %}
+                    🎮
+                {% else %}
+                    ⏳
+                {% endif %}
+            </span>
+            <br>
+            <small style="color: #aaa;">🖥️ Platforms: {{ game.platforms | join(', ') }}</small>
         </div>
+
+        <button hx-get="/games/{{ game.id }}/edit"
+                hx-target="#game-{{ game.id }}"
+                hx-swap="outerHTML"
+                style="background: #4caf50; border: none; padding: 5px 10px; color: white; border-radius: 4px; cursor: pointer;">
+                ✏️
+        </button>
     </li>
     {% endfor %}
 </ul>
-
 <!-- Button to Show Create Form -->
 <button id="show-create-btn"
         hx-on:click="document.getElementById('create-game-section').style.display='block';
@@ -27,55 +40,80 @@
 </button>
 
 <!-- Create New Game Form, Hidden by Default -->
-<div id="create-game-section" style="display: none;">
+<div id="create-game-section" style="display: none; max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: white;">
     <h3>Create New Game</h3>
     <form method="POST" hx-post="/games" hx-target="#games" hx-swap="innerHTML">
-        <label for="title">Title</label>
-        <input name="title" placeholder="Title">
-        <label for="start_date">Start date</label>
-        <input type="date" name="start_date" placeholder="Start Date">
-        <label for="end_date">End date</label>
-        <input type="date" name="end_date" placeholder="End Date">
-        <label for="steam_store_url">Steam Store url</label>
-        <input name="steam_store_url" placeholder="Steam URL">
-        <label for="gog_store_url">GOG Store url</label>
-        <input name="gog_store_url" placeholder="GOG URL">
-        <label for="image_url">Image</label>
-        <input name="image_url" placeholder="Image URL">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label for="title">Title</label>
+                <input name="title" placeholder="Title" style="width: 100%;">
+            </div>
+            <div>
+                <label for="developer">Developer</label>
+                <input name="developer" placeholder="Developer" style="width: 100%;">
+            </div>
+            <div>
+                <label for="start_date">Start date</label>
+                <input type="date" name="start_date" placeholder="Start Date" style="width: 100%;">
+            </div>
+            <div>
+                <label for="end_date">End date</label>
+                <input type="date" name="end_date" placeholder="End Date" style="width: 100%;">
+            </div>
+            <div>
+                <label for="steam_store_url">Steam Store URL</label>
+                <input name="steam_store_url" placeholder="Steam URL" style="width: 100%;">
+            </div>
+            <div>
+                <label for="gog_store_url">GOG Store URL</label>
+                <input name="gog_store_url" placeholder="GOG URL" style="width: 100%;">
+            </div>
+            <div>
+                <label for="image_url">Image</label>
+                <input name="image_url" placeholder="Image URL" style="width: 100%;">
+            </div>
+            <div>
+                <label for="rating">Rating</label>
+                <input name="rating" type="number" min="0" max="10" placeholder="Rating" style="width: 100%;">
+            </div>
+            <div style="grid-column: span 2;">
+                <label for="comments">Comments</label>
+                <textarea name="comments" placeholder="Comments" style="width: 100%; height: 80px;"></textarea>
+            </div>
+            <div>
+                <label for="tags">Tags</label>
+                <input name="tags" placeholder="Tags (comma separated)" style="width: 100%;">
+            </div>
+            <div>
+                <label for="completed">
+                    <input type="checkbox" name="completed"> Completed
+                </label>
+            </div>
+            <div>
+                <label for="platforms">Platforms</label>
+                <select id="platforms" name="platforms" multiple style="width: 100%;">
+                    {% for platform in platforms %}
+                    <option value="{{ platform.id }}">{{ platform.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="genres">Genres</label>
+                <select id="genres" name="genres" multiple style="width: 100%;">
+                    {% for genre in genres %}
+                    <option value="{{ genre.id }}">{{ genre.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
 
-        <label for="comments">Comments</label>
-        <textarea name="comments" placeholder="Comments"></textarea>
-        <label for="tags">Tags</label>
-        <input name="tags" placeholder="Tags (comma separated)">
-
-        <label for="platforms">Platforms:</label>
-        <select id="platforms" name="platforms" multiple>
-            {% for platform in platforms %}
-            <option value="{{ platform.id }}">{{ platform.name }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="genres">Genres:</label>
-        <select id="genres" name="genres" multiple>
-            {% for genre in genres %}
-            <option value="{{ genre.id }}">{{ genre.name }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="developer">Developer</label>
-        <input name="developer" placeholder="Developer">
-        <label for="rating">Rating</label>
-        <input name="rating" type="number" min="0" max="10" placeholder="Rating">
-        <label for="completed">
-            Completed
-            <input type="checkbox" name="completed">
-        </label>
-
-        <button type="submit">🆕</button>
-        <button type="button" 
+        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+            <button type="submit" style="background: #4caf50; color: white; padding: 8px 12px; border-radius: 4px;">🆕 Create</button>
+            <button type="button" style="background: #ff4d4d; color: white; padding: 8px 12px; border-radius: 4px;"
                 hx-on:click="document.getElementById('create-game-section').style.display='none';
                              document.getElementById('show-create-btn').style.display='block';">
-            ❌
-        </button>
+                ❌ Cancel
+            </button>
+        </div>
     </form>
 </div>

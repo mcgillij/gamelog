@@ -19,8 +19,7 @@ from game import (
     initialize_lookup_tables,
 )
 
-engine = create_engine("sqlite:///games.db", echo="debug")
-# engine = create_engine("sqlite:///games.db", echo=True)
+engine = create_engine("sqlite:///games.db", echo=False)
 
 # Create all tables in the database
 SQLModel.metadata.create_all(engine)
@@ -145,7 +144,6 @@ async def create_game(
     db.commit()
     db.refresh(new_game)
 
-    # Link existing platforms (don't create new ones)
     logger.info(f"Platforms: {platforms}")
     if platforms:
         existing_platforms = db.exec(
@@ -155,7 +153,6 @@ async def create_game(
             logger.info(f"Adding platform: {platform}")
             db.add(GamePlatformLink(game_id=new_game.id, platform_id=platform.id))
 
-    # Link existing genres (don't create new ones)
     logger.info(f"Genres: {genres}")
     if genres:
         existing_genres = db.exec(
@@ -166,7 +163,6 @@ async def create_game(
             db.add(GameGenreLink(game_id=new_game.id, genre_id=genre.id))
 
     db.commit()
-
     logger.info(f"New game created: {new_game}")
 
     # Redirect to games list
@@ -258,11 +254,8 @@ async def update_game(
     game.rating = rating
 
     # Delete existing platform links
-
     db.exec(delete(GamePlatformLink).where(GamePlatformLink.game_id == game_id))
-
     # Delete existing genre links
-
     db.exec(delete(GameGenreLink).where(GameGenreLink.game_id == game_id))
     # Link existing platforms (don't create new ones)
     if platforms:
@@ -281,7 +274,6 @@ async def update_game(
             db.add(GameGenreLink(game_id=game.id, genre_id=genre.id))
 
     db.commit()
-
     # Redirect to games list
     return await games_list(request, hx_request="true", db=db)
 
