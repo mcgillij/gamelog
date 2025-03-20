@@ -22,6 +22,13 @@
             <br>
             <small style="color: #aaa;">🖥️ Platforms: {{ game.platforms | join(', ') }}</small>
         </div>
+        <div style="display: flex; gap: 5px;">
+        <button hx-get="/games/{{ game.id }}/view"
+                hx-target="#game-{{ game.id }}"
+                hx-swap="outerHTML"
+                style="background: #0073e6; border: none; padding: 5px 10px; color: white; border-radius: 4px; cursor: pointer;">
+                👁️
+        </button>
 
         <button hx-get="/games/{{ game.id }}/edit"
                 hx-target="#game-{{ game.id }}"

@@ -1,0 +1,36 @@
+<div id="game-{{ game.id }}" style="max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: white;">
+    <h3>{{ game.title }}</h3>
+    <p><strong>Developer:</strong> {{ game.developer }}</p>
+    <p><strong>Dates:</strong> {{ game.start_date }} - {{ game.end_date }}</p>
+    <p><strong>Rating:</strong> ⭐ {{ game.rating }}</p>
+    <p><strong>Completed:</strong> {% if game.completed %} ✅ Yes {% else %} 🎮 No {% endif %}</p>
+    <p><strong>Platforms:</strong> 
+        {% for platform in platforms if platform.id in game.platforms %}
+            {{ platform.name }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+
+    <p><strong>Genres:</strong> 
+        {% for genre in genres if genre.id in game.genres %}
+            {{ genre.name }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+    <p><strong>Comments:</strong> {{ game.comments }}</p>
+
+    {% if game.steam_store_url %}
+        <p><a href="{{ game.steam_store_url }}" target="_blank" style="color: #1b9aaa;">🛒 Steam Store</a></p>
+    {% endif %}
+
+    {% if game.gog_store_url %}
+        <p><a href="{{ game.gog_store_url }}" target="_blank" style="color: #1b9aaa;">🛒 GOG Store</a></p>
+    {% endif %}
+
+    {% if game.image_url %}
+        <img src="{{ game.image_url }}" alt="{{ game.title }}" style="max-width: 100%; border-radius: 8px;">
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+        <button hx-get="/games" hx-target="#games" hx-swap="innerHTML" 
+                style="background: #888; color: white; padding: 8px 12px; border-radius: 4px;">❌ Close</button>
+    </div>
+</div>
