@@ -172,6 +172,53 @@ async def create_game(
     # Redirect to games list
     return await games_list(request, hx_request="true", db=db)
 
+@app.get("/games/{game_id}/edit", response_class=HTMLResponse)
+async def edit_game(request: Request, game_id: int, db: Session = Depends(get_db)):
+    # Find game
+    game = db.get(Game, game_id)
+    if not game:
+        return JSONResponse(status_code=404, content={"message": "Game not found"})
+
+    # Get platforms
+    platforms = db.exec(
+        select(PlatformModel)
+        .join(GamePlatformLink)
+        .where(GamePlatformLink.game_id == game.id)
+    ).all()
+
+    # Get genres
+    genres = db.exec(
+        select(GenreModel)
+        .join(GameGenreLink)
+        .where(GameGenreLink.game_id == game.id)
+    ).all()
+
+    # Prepare game data for the form
+    game_data = {
+        "id": game.id,
+        "title": game.title,
+        "start_date": game.start_date,
+        "end_date": game.end_date,
+        "completed": game.completed,
+        "steam_store_url": game.steam_store_url,
+        "gog_store_url": game.gog_store_url,
+        "image_url": game.image_url,
+        "comments": game.comments,
+        "tags": game.tags,
+        "platforms": [p.id for p in platforms],  # Use IDs for form selection
+        "genres": [g.id for g in genres],
+        "developer": game.developer,
+        "rating": game.rating,
+    }
+
+    context = {
+        "request": request,
+        "game": game_data,
+        "platforms": db.exec(select(PlatformModel)).all(),
+        "genres": db.exec(select(GenreModel)).all(),
+    }
+
+    return templates.TemplateResponse("edit_game.html", context=context)
 
 @app.post("/games/{game_id}", response_class=HTMLResponse)
 async def update_game(

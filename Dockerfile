@@ -5,7 +5,11 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir poetr
 WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry config virtualenvs.create false && poetry install --no-root --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-root --no-interaction --no-ansi --no-cache && \
+    rm -rf /root/.cache/pypoetry/*
+#--mount=type=cache,target=/root/.cache/pypoetry/cache \
+#--mount=type=cache,target=/root/.cache/pypoetry/artifacts \
 
 COPY . .
 CMD ["fastapi", "--verbose", "dev", "main.py", "--reload", "--host", "0.0.0.0"]
