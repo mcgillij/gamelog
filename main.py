@@ -1,32 +1,32 @@
+from contextlib import contextmanager
+from typing import Annotated, Union, List, Dict
 from fastapi import FastAPI, Request, Header, Form, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
-from typing import Annotated, Union, List
 
 from sqlmodel import Session, create_engine, select, delete, SQLModel
-from contextlib import contextmanager
 from util import logger
 
 # Import your updated models
 from game import (
     Game,
-    PlatformModel,
-    GenreModel,
     GamePlatformLink,
     GameGenreLink,
+    GenreModel,
+    PlatformModel,
     initialize_lookup_tables,
 )
 
 engine = create_engine("sqlite:///games.db", echo=False)
 
-# Create all tables in the database
+# Create all tables in the database if they don't exist
 SQLModel.metadata.create_all(engine)
 initialize_lookup_tables(engine)
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
 templates = Jinja2Templates(directory="templates")
 
 
@@ -52,29 +52,23 @@ async def games_list(
     hx_request: Annotated[Union[str, None], Header()] = None,
     db: Session = Depends(get_db),
 ):
-    # Query games with relationships
     statement = select(Game)
     result = db.exec(statement)
     games = result.all()
 
-    # For template rendering, we need to prepare the data differently
     games_data = []
     for game in games:
-        # Get platforms
         platforms = db.exec(
             select(PlatformModel)
             .join(GamePlatformLink)
             .where(GamePlatformLink.game_id == game.id)
         ).all()
-
-        # Get genres
         genres = db.exec(
             select(GenreModel)
             .join(GameGenreLink)
             .where(GameGenreLink.game_id == game.id)
         ).all()
 
-        # Create a dictionary with all game data
         game_dict = {
             "id": game.id,
             "title": game.title,
@@ -124,7 +118,6 @@ async def create_game(
     rating: Annotated[int, Form()] = 0,
     db: Session = Depends(get_db),
 ):
-    # Create new game
     new_game = Game(
         title=title,
         start_date=start_date,
@@ -139,7 +132,6 @@ async def create_game(
         rating=rating,
     )
 
-    # Add game to database
     db.add(new_game)
     db.commit()
     db.refresh(new_game)
@@ -172,39 +164,7 @@ async def create_game(
 @app.get("/games/{game_id}/view", response_class=HTMLResponse)
 async def view_game(request: Request, game_id: int, db: Session = Depends(get_db)):
     # Find game
-    game = db.get(Game, game_id)
-    if not game:
-        return JSONResponse(status_code=404, content={"message": "Game not found"})
-
-    # Get platforms
-    platforms = db.exec(
-        select(PlatformModel)
-        .join(GamePlatformLink)
-        .where(GamePlatformLink.game_id == game.id)
-    ).all()
-
-    # Get genres
-    genres = db.exec(
-        select(GenreModel).join(GameGenreLink).where(GameGenreLink.game_id == game.id)
-    ).all()
-
-    # Prepare game data for the form
-    game_data = {
-        "id": game.id,
-        "title": game.title,
-        "start_date": game.start_date,
-        "end_date": game.end_date,
-        "completed": game.completed,
-        "steam_store_url": game.steam_store_url,
-        "gog_store_url": game.gog_store_url,
-        "image_url": game.image_url,
-        "comments": game.comments,
-        "tags": game.tags,
-        "platforms": [p.id for p in platforms],  # Use IDs for form selection
-        "genres": [g.id for g in genres],
-        "developer": game.developer,
-        "rating": game.rating,
-    }
+    game_data = get_game(db, game_id)
 
     context = {
         "request": request,
@@ -219,39 +179,7 @@ async def view_game(request: Request, game_id: int, db: Session = Depends(get_db
 @app.get("/games/{game_id}/edit", response_class=HTMLResponse)
 async def edit_game(request: Request, game_id: int, db: Session = Depends(get_db)):
     # Find game
-    game = db.get(Game, game_id)
-    if not game:
-        return JSONResponse(status_code=404, content={"message": "Game not found"})
-
-    # Get platforms
-    platforms = db.exec(
-        select(PlatformModel)
-        .join(GamePlatformLink)
-        .where(GamePlatformLink.game_id == game.id)
-    ).all()
-
-    # Get genres
-    genres = db.exec(
-        select(GenreModel).join(GameGenreLink).where(GameGenreLink.game_id == game.id)
-    ).all()
-
-    # Prepare game data for the form
-    game_data = {
-        "id": game.id,
-        "title": game.title,
-        "start_date": game.start_date,
-        "end_date": game.end_date,
-        "completed": game.completed,
-        "steam_store_url": game.steam_store_url,
-        "gog_store_url": game.gog_store_url,
-        "image_url": game.image_url,
-        "comments": game.comments,
-        "tags": game.tags,
-        "platforms": [p.id for p in platforms],  # Use IDs for form selection
-        "genres": [g.id for g in genres],
-        "developer": game.developer,
-        "rating": game.rating,
-    }
+    game_data = get_game(db, game_id)
 
     context = {
         "request": request,
@@ -282,12 +210,10 @@ async def update_game(
     rating: Annotated[int, Form()] = 0,
     db: Session = Depends(get_db),
 ):
-    # Find game
     game = db.get(Game, game_id)
     if not game:
         return JSONResponse(status_code=404, content={"message": "Game not found"})
 
-    # Update basic game fields
     game.title = title
     game.start_date = start_date
     game.end_date = end_date
@@ -300,11 +226,9 @@ async def update_game(
     game.developer = developer
     game.rating = rating
 
-    # Delete existing platform links
     db.exec(delete(GamePlatformLink).where(GamePlatformLink.game_id == game_id))
-    # Delete existing genre links
     db.exec(delete(GameGenreLink).where(GameGenreLink.game_id == game_id))
-    # Link existing platforms (don't create new ones)
+
     if platforms:
         existing_platforms = db.exec(
             select(PlatformModel).where(PlatformModel.id.in_(platforms))
@@ -312,7 +236,6 @@ async def update_game(
         for platform in existing_platforms:
             db.add(GamePlatformLink(game_id=game.id, platform_id=platform.id))
 
-    # Link existing genres (don't create new ones)
     if genres:
         existing_genres = db.exec(
             select(GenreModel).where(GenreModel.id.in_(genres))
@@ -327,19 +250,48 @@ async def update_game(
 
 @app.post("/games/{game_id}/delete", response_class=HTMLResponse)
 async def delete_game(request: Request, game_id: int, db: Session = Depends(get_db)):
-    # Find game
     game = db.get(Game, game_id)
     if not game:
         return JSONResponse(status_code=404, content={"message": "Game not found"})
 
-    # Delete existing platform links
     db.exec(delete(GamePlatformLink).where(GamePlatformLink.game_id == game_id))
-    # Delete existing genre links
     db.exec(delete(GameGenreLink).where(GameGenreLink.game_id == game_id))
 
-    # Delete game
     db.delete(game)
     db.commit()
 
     # Redirect to games list
     return await games_list(request, hx_request="true", db=db)
+
+
+def get_game(db: Session, game_id: int) -> Dict:
+    game = db.get(Game, game_id)
+    if not game:
+        return JSONResponse(status_code=404, content={"message": "Game not found"})
+
+    platforms = db.exec(
+        select(PlatformModel)
+        .join(GamePlatformLink)
+        .where(GamePlatformLink.game_id == game.id)
+    ).all()
+    genres = db.exec(
+        select(GenreModel).join(GameGenreLink).where(GameGenreLink.game_id == game.id)
+    ).all()
+
+    game_data = {
+        "id": game.id,
+        "title": game.title,
+        "start_date": game.start_date,
+        "end_date": game.end_date,
+        "completed": game.completed,
+        "steam_store_url": game.steam_store_url,
+        "gog_store_url": game.gog_store_url,
+        "image_url": game.image_url,
+        "comments": game.comments,
+        "tags": game.tags,
+        "platforms": [p.id for p in platforms],  # Use IDs for form selection
+        "genres": [g.id for g in genres],
+        "developer": game.developer,
+        "rating": game.rating,
+    }
+    return game_data

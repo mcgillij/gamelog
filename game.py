@@ -1,4 +1,4 @@
-"""Main Game class"""
+"""Game Model"""
 
 from typing import List, Optional
 from sqlmodel import Field, SQLModel, Relationship, Session, select
@@ -49,7 +49,8 @@ class GameGenreLink(SQLModel, table=True):
 
 class Game(SQLModel, table=True):
     __tablename__ = "games"
-    """My Game class"""
+
+    """ Game Model """
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str
     start_date: str
