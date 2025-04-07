@@ -1,6 +1,6 @@
 from contextlib import contextmanager
-from typing import Annotated, Union, List, Dict
-from fastapi import FastAPI, Request, Header, Form, Depends
+from typing import Annotated, Union, List, Dict, Optional
+from fastapi import FastAPI, Request, Header, Form, Depends, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
@@ -50,9 +50,24 @@ async def index(request: Request):
 async def games_list(
     request: Request,
     hx_request: Annotated[Union[str, None], Header()] = None,
+    title: Annotated[Optional[str], Query()] = None,
+    developer: Annotated[Optional[str], Query()] = None,
+    completed: Annotated[Optional[bool], Query()] = False,
+    rating: Annotated[Optional[int], Query()] = 0,
     db: Session = Depends(get_db),
 ):
+
     statement = select(Game)
+    # basic filtering
+    if title:
+        statement = statement.where(Game.title.like(f"%{title}%"))
+    if developer:
+        statement = statement.where(Game.developer.like(f"%{developer}%"))
+    if completed is not None:
+        statement = statement.where(Game.completed == completed)
+    if rating is not None:
+        statement = statement.where(Game.rating >= rating)
+
     result = db.exec(statement)
     games = result.all()
 
@@ -93,6 +108,10 @@ async def games_list(
         "games": games_data,
         "platforms": db.exec(select(PlatformModel)).all(),
         "genres": db.exec(select(GenreModel)).all(),
+        "title_filter": title,
+        "developer_filter": developer,
+        "completed_filter": completed,
+        "rating_filter": rating,
     }
 
     if hx_request:

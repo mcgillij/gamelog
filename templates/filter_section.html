@@ -1,0 +1,41 @@
+<button id="show-filter-btn"
+        hx-on:click="document.getElementById('filter-form-section').style.display='block';
+                     this.style.display='none';
+                     document.getElementById('hide-filter-btn').style.display='block';
+                     ">
+    🔎 Show Filters
+</button>
+<div style="display: flex; justify-content: space-between; margin-top: 10px;">
+    <button id="hide-filter-btn" type="button" style="background: #ff4d4d; color: white; padding: 8px 12px; border-radius: 4px; display: none;"
+        hx-on:click="document.getElementById('filter-form-section').style.display='none';
+                     document.getElementById('hide-filter-btn').style.display='none';
+                     document.getElementById('show-filter-btn').style.display='block';">
+       ❌ Hide Filters
+    </button>
+</div>
+<div id="filter-form-section" style="display: none; max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: white;">
+    <form hx-get="/games" hx-target="#games" hx-swap="innerHTML">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div>
+                <label for="filter_title">Title:</label>
+                <input type="text" id="filter_title" name="title" placeholder="Filter by title">
+            </div>
+            <div>
+                <label for="filter_developer">Developer:</label>
+                <input type="text" id="filter_developer" name="developer" placeholder="Filter by developer">
+            </div>
+            <div>
+                <label for="filter_completed">Completed:</label>
+                <select id="filter_completed" name="completed">
+                    <option value="True">Yes</option>
+                    <option value="False">No</option>
+                </select>
+            </div>
+            <div>
+                <label for="filter_rating">Rating:</label>
+                <input type="number" id="filter_rating" name="rating" min="0" max="10" placeholder="Filter by rating" value="0">
+            </div>
+            <button type="submit" style="background: #4caf50; color: white; padding: 8px 12px; border-radius: 4px;">🔎</button>
+        </div>
+    </form>
+</div>

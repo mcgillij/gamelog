@@ -1,3 +1,6 @@
+{% include 'create_form.html' %}
+{% include 'filter_section.html' %}
+
 <ul id="games" style="list-style: none; padding: 0; display: grid; gap: 10px;">
     {% for game in games %}
     <li id="game-{{ game.id }}" 
@@ -39,88 +42,4 @@
     </li>
     {% endfor %}
 </ul>
-<!-- Button to Show Create Form -->
-<button id="show-create-btn"
-        hx-on:click="document.getElementById('create-game-section').style.display='block';
-                     this.style.display='none';">
-    ➕ Add New Game
-</button>
 
-<!-- Create New Game Form, Hidden by Default -->
-<div id="create-game-section" style="display: none; max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: white;">
-    <h3>Create New Game</h3>
-    <form method="POST" hx-post="/games" hx-target="#games" hx-swap="innerHTML">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-                <label for="title">Title</label>
-                <input name="title" placeholder="Title" style="width: 100%;">
-            </div>
-            <div>
-                <label for="developer">Developer</label>
-                <input name="developer" placeholder="Developer" style="width: 100%;">
-            </div>
-            <div>
-                <label for="start_date">Start date</label>
-                <input type="date" name="start_date" placeholder="Start Date" style="width: 100%;">
-            </div>
-            <div>
-                <label for="end_date">End date</label>
-                <input type="date" name="end_date" placeholder="End Date" style="width: 100%;">
-            </div>
-            <div>
-                <label for="steam_store_url">Steam Store URL</label>
-                <input name="steam_store_url" placeholder="Steam URL" style="width: 100%;">
-            </div>
-            <div>
-                <label for="gog_store_url">GOG Store URL</label>
-                <input name="gog_store_url" placeholder="GOG URL" style="width: 100%;">
-            </div>
-            <div>
-                <label for="image_url">Image</label>
-                <input name="image_url" placeholder="Image URL" style="width: 100%;">
-            </div>
-            <div>
-                <label for="rating">Rating</label>
-                <input name="rating" type="number" min="0" max="10" placeholder="Rating" style="width: 100%;">
-            </div>
-            <div style="grid-column: span 2;">
-                <label for="comments">Comments</label>
-                <textarea name="comments" placeholder="Comments" style="width: 100%; height: 80px;"></textarea>
-            </div>
-            <div>
-                <label for="tags">Tags</label>
-                <input name="tags" placeholder="Tags (comma separated)" style="width: 100%;">
-            </div>
-            <div>
-                <label for="completed">
-                    <input type="checkbox" name="completed"> Completed
-                </label>
-            </div>
-            <div>
-                <label for="platforms">Platforms</label>
-                <select id="platforms" name="platforms" multiple style="width: 100%;">
-                    {% for platform in platforms %}
-                    <option value="{{ platform.id }}">{{ platform.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label for="genres">Genres</label>
-                <select id="genres" name="genres" multiple style="width: 100%;">
-                    {% for genre in genres %}
-                    <option value="{{ genre.id }}">{{ genre.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-            <button type="submit" style="background: #4caf50; color: white; padding: 8px 12px; border-radius: 4px;">🆕 Create</button>
-            <button type="button" style="background: #ff4d4d; color: white; padding: 8px 12px; border-radius: 4px;"
-                hx-on:click="document.getElementById('create-game-section').style.display='none';
-                             document.getElementById('show-create-btn').style.display='block';">
-                ❌ Cancel
-            </button>
-        </div>
-    </form>
-</div>
