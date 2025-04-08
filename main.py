@@ -60,9 +60,9 @@ async def games_list(
     # basic filtering
     if title:
         statement = statement.where(Game.title.like(f"%{title}%"))
-    if completed is not None:
+    if completed:
         statement = statement.where(Game.completed == completed)
-    if rating is not None:
+    if rating:
         statement = statement.where(Game.rating >= rating)
 
     result = db.exec(statement)
