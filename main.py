@@ -51,7 +51,6 @@ async def games_list(
     request: Request,
     hx_request: Annotated[Union[str, None], Header()] = None,
     title: Annotated[Optional[str], Query()] = None,
-    developer: Annotated[Optional[str], Query()] = None,
     completed: Annotated[Optional[bool], Query()] = False,
     rating: Annotated[Optional[int], Query()] = 0,
     db: Session = Depends(get_db),
@@ -61,8 +60,6 @@ async def games_list(
     # basic filtering
     if title:
         statement = statement.where(Game.title.like(f"%{title}%"))
-    if developer:
-        statement = statement.where(Game.developer.like(f"%{developer}%"))
     if completed is not None:
         statement = statement.where(Game.completed == completed)
     if rating is not None:
@@ -109,7 +106,6 @@ async def games_list(
         "platforms": db.exec(select(PlatformModel)).all(),
         "genres": db.exec(select(GenreModel)).all(),
         "title_filter": title,
-        "developer_filter": developer,
         "completed_filter": completed,
         "rating_filter": rating,
     }

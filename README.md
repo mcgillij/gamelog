@@ -45,6 +45,6 @@ poetry run uvicorn app.main:app --reload
 
 ## Usage with docker
 ```bash
-docker build -t test .
-docker run -p 8000:8000 test
+docker-compose build
+docker-compose up -d
 ```
