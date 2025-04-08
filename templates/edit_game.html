@@ -30,10 +30,26 @@
                 <label for="image_url">Image</label>
                 <input name="image_url" value="{{game.image_url}}" placeholder="Image URL" style="width: 100%;">
             </div>
-            <div>
-                <label for="rating">Rating</label>
-                <input name="rating" type="number" min="0" max="10" value="{{game.rating}}" placeholder="Rating" style="width: 100%;">
+
+            <div class="rating-container">
+              <label for="rating">Rating</label>
+              <input type="hidden" id="rating" name="rating" value="{{ game.rating if game is defined and game.rating is defined else 0 }}">
+              <div class="rating-blocks" style="display: flex; gap: 6px; margin-top: 6px;">
+                {% set rating_value = game.rating if game is defined and game.rating is defined else 0 %}
+                {% for i in range(1, 11) %}
+                  <div onclick="updateRating(this, {{ i }})"
+                    style="width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 4px; 
+                           display: flex; align-items: center; justify-content: center; cursor: pointer;
+                           background-color: {% if rating_value >= i %}#3b82f6{% else %}#e5e7eb{% endif %};
+                           color: {% if rating_value >= i %}white{% else %}black{% endif %};"
+                    title="Set rating to {{ i }}"
+                  >
+                    {{ i }}
+                  </div>
+                {% endfor %}
+              </div>
             </div>
+
             <div style="grid-column: span 2;">
                 <label for="comments">Comments</label>
                 <textarea name="comments" placeholder="Comments" style="width: 100%; height: 80px;">{{game.comments}}</textarea>

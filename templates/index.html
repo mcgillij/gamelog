@@ -7,6 +7,25 @@
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<script>
+  function updateRating(clickedEl, value) {
+  const container = clickedEl.closest('.rating-container');
+  const input = container.querySelector('input[name="rating"]');
+  const blocks = container.querySelectorAll('.rating-blocks > div');
+
+  input.value = value;
+
+  blocks.forEach((block, index) => {
+    if (index < value) {
+      block.style.backgroundColor = '#3b82f6';
+      block.style.color = 'white';
+    } else {
+      block.style.backgroundColor = '#e5e7eb';
+      block.style.color = 'black';
+    }
+  });
+}
+</script>
 </head>
 <body>
     <h1>🕹️🪵</h1>
