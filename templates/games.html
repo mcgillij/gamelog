@@ -1,6 +1,6 @@
+<h3>Games: {{ games|length }}</h3>
 {% include 'create_form.html' %}
 {% include 'filter_section.html' %}
-
 <ul id="games" style="list-style: none; padding: 0; display: grid; gap: 10px;">
     {% for game in games %}
     <li id="game-{{ game.id }}" 
