@@ -23,10 +23,12 @@ from game import (
 DB_FILE = "sqlite:///games.db"
 engine = create_engine(DB_FILE, echo=False)
 
+
 # Create all tables in the database if they don't exist
 def init_db():
     SQLModel.metadata.create_all(engine)
     initialize_lookup_tables(engine)
+
 
 app = FastAPI(debug=True)
 init_db()
@@ -322,15 +324,16 @@ async def debug_exception_handler(request: Request, exc: Exception):
 
     return Response(
         content="".join(
-            traceback.format_exception(
-                etype=type(exc), value=exc, tb=exc.__traceback__
-            )
+            traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)
         )
     )
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
     logger.error(f"{request}: {exc_str}")
-    content = {'status_code': 10422, 'message': exc_str, 'data': None}
-    return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    content = {"status_code": 10422, "message": exc_str, "data": None}
+    return JSONResponse(
+        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+    )

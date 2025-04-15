@@ -1,7 +1,7 @@
 import pytest
 import os
 from fastapi import FastAPI
-from main import app, get_db # Assuming main.py defines the FastAPI app instance
+from main import app, get_db  # Assuming main.py defines the FastAPI app instance
 from fastapi.testclient import TestClient
 import json
 from sqlmodel import SQLModel, create_engine, Session
@@ -18,6 +18,7 @@ from util import logger
 DB_FILE = "testdb.db"
 TEST_DB_PATH = "sqlite:///" + DB_FILE
 test_engine = create_engine(TEST_DB_PATH, echo=True)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def init_db():
@@ -47,6 +48,7 @@ def init_db():
 
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
+
 
 def override_get_db():
     with Session(test_engine) as session:
@@ -136,4 +138,3 @@ def test_game_delete(client):
     """Test deleting a specific game (DELETE /games/{id}/delete)."""
     response = client.post("/games/1/delete")
     assert response.status_code == 200
-
