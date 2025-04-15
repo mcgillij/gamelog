@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import Annotated, Union, List, Dict, Optional
-from fastapi import FastAPI, Request, Header, Form, Depends, Query
+from fastapi import FastAPI, Request, Header, Form, Depends, Query, Response, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
@@ -19,13 +20,18 @@ from game import (
     initialize_lookup_tables,
 )
 
-engine = create_engine("sqlite:///games.db", echo=False)
+DB_FILE = "sqlite:///games.db"
+engine = create_engine(DB_FILE, echo=False)
+
 
 # Create all tables in the database if they don't exist
-SQLModel.metadata.create_all(engine)
-initialize_lookup_tables(engine)
+def init_db():
+    SQLModel.metadata.create_all(engine)
+    initialize_lookup_tables(engine)
 
-app = FastAPI()
+
+app = FastAPI(debug=True)
+init_db()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -310,3 +316,24 @@ def get_game(db: Session, game_id: int) -> Dict:
         "rating": game.rating,
     }
     return game_data
+
+
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    import traceback
+
+    return Response(
+        content="".join(
+            traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)
+        )
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
+    logger.error(f"{request}: {exc_str}")
+    content = {"status_code": 10422, "message": exc_str, "data": None}
+    return JSONResponse(
+        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+    )
