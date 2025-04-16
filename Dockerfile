@@ -8,9 +8,6 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root --no-interaction --no-ansi --no-cache && \
     rm -rf /root/.cache/pypoetry/*
-#--mount=type=cache,target=/root/.cache/pypoetry/cache \
-#--mount=type=cache,target=/root/.cache/pypoetry/artifacts \
 
 COPY . .
-#CMD ["uvicorn", "--log-level", "trace", "main:app", "--reload", "--host", "0.0.0.0"]
 CMD ["fastapi", "--verbose", "dev", "main.py", "--reload", "--host", "0.0.0.0"]
