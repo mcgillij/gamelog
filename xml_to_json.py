@@ -1,6 +1,7 @@
 import json
 from typing import List, Dict
 
+import requests
 import xmltodict
 from sqlmodel import Session, create_engine, select
 
@@ -49,9 +50,18 @@ def import_to_db(games: List[Dict]):
 
 
 if __name__ == "__main__":
-    steamid = ""
-    steam_url = "https://steamcommunity.com/id/{steamid}/games/?tab=all&xml=1"
+    steamid = input("Enter your Steam ID: ")
+    steam_url = f"https://steamcommunity.com/id/{steamid}/games/?tab=all&xml=1"
     xml_file = "games.xml"
+    try:
+        response = requests.get(steam_url)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        with open(xml_file, "w", encoding="utf-8") as f:
+            f.write(response.text)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading XML file: {e}")
+        exit()  # Exit if the download fails
     json_data = xml_to_json(xml_file)
     json_data = json.loads(json_data)
     import_to_db(json_data["gamesList"]["games"]["game"])

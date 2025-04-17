@@ -48,3 +48,9 @@ poetry run uvicorn app.main:app --reload
 docker-compose build
 docker-compose up -d
 ```
+
+## Snagging your steam library
+```bash
+poetry run python xml_to_json.py
+```
+
