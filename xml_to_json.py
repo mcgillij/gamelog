@@ -49,6 +49,8 @@ def import_to_db(games: List[Dict]):
 
 
 if __name__ == "__main__":
+    steamid = ""
+    steam_url = "https://steamcommunity.com/id/{steamid}/games/?tab=all&xml=1"
     xml_file = "games.xml"
     json_data = xml_to_json(xml_file)
     json_data = json.loads(json_data)
